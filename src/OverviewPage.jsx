@@ -35,7 +35,7 @@ function isValidAddress(input) {
   return zipPattern.test(input.trim()) || addressPattern.test(input.trim());
 }
 
-// ✅ Now accepts address and onBack as props
+// Now accepts address and onBack as props
 export default function OverviewPage({ address = "45 Harvard Ave, Irvine, CA 92608", onBack }) {
   const [activeTab, setActiveTab] = useState("overview");
   const [searchQuery, setSearchQuery] = useState("");
@@ -85,7 +85,7 @@ export default function OverviewPage({ address = "45 Harvard Ave, Irvine, CA 926
         flexDirection: "column"
       }}>
 
-        {/* ✅ Navy Header with back button */}
+        {/* Navy Header with back button */}
         <div style={{
           background: "linear-gradient(135deg, #1e3a6e 0%, #2a4f8f 100%)",
           padding: "20px 40px",
@@ -95,7 +95,7 @@ export default function OverviewPage({ address = "45 Harvard Ave, Irvine, CA 926
         }}>
           <span style={{ fontSize: 38, fontWeight: 700, color: "#fff", letterSpacing: 3, fontFamily: "'Georgia', serif" }}>NERA</span>
           <span style={{ fontSize: 24, color: "#e8eef8", fontWeight: 400, fontFamily: "'Georgia', serif" }}>From Address to Insights</span>
-          {/* ✅ Back button */}
+          {/* Back button */}
           <button
             onClick={onBack}
             style={{
@@ -114,7 +114,7 @@ export default function OverviewPage({ address = "45 Harvard Ave, Irvine, CA 926
           </button>
         </div>
 
-        {/* ✅ Search bar with error */}
+        {/* Search bar with error */}
         <div style={{ padding: "24px 40px 0" }}>
           <div style={{
             display: "flex",
@@ -158,7 +158,7 @@ export default function OverviewPage({ address = "45 Harvard Ave, Irvine, CA 926
         {/* Address + tabs row */}
         <div style={{ padding: "20px 40px 0", display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
           <div>
-            {/* ✅ Shows the actual searched address */}
+            {/* Shows the actual searched address */}
             <h2 style={{ fontSize: 22, fontWeight: 700, color: "#1a2a4a", margin: "0 0 4px", fontFamily: "'Georgia', serif" }}>{currentAddress}</h2>
             <p style={{ margin: 0, fontSize: 14, fontFamily: "sans-serif", color: "#2a4f8f" }}>
               <strong>Confidence:</strong> High
