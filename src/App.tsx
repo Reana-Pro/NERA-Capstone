@@ -74,7 +74,7 @@ export default function App() {
         justifyContent: "center",
         minHeight: "calc(100vh - 90px)"
       }}>
-        <div style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,0.45)" }} />
+        <div style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,0.6)" }} />
 
         <div style={{
           position: "relative",
