@@ -2,9 +2,9 @@ import { useState } from "react";
 import OverviewPage from "./OverviewPage";
 
 const mostSearched = ["45 Harvard Ave", "62 Culver Dr", "21 Kelvin Ave"];
-const BG_IMAGE = "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1600&q=80";
+const BG_IMAGE = "./neighborhood.png";
 
-function isValidAddress(input : string) {
+function isValidAddress(input: string) {
   const zipPattern = /^\d{5}$/;
   const addressPattern = /\d+\s+\w+/;
   return zipPattern.test(input.trim()) || addressPattern.test(input.trim());
@@ -14,9 +14,9 @@ export default function App() {
   const [query, setQuery] = useState("");
   const [error, setError] = useState("");
   const [submittedAddress, setSubmittedAddress] = useState<string | null>(null);
-  
-  const handleSearch = (value? :string) => {
-    const input = value || query;
+
+  const handleSearch = (value?: string) => {
+    const input: string = value || query;
     if (!input.trim()) {
       setError("Please enter an address or zip code.");
       return;
@@ -29,12 +29,10 @@ export default function App() {
     setSubmittedAddress(input);
   };
 
-  // If address submitted, show the Overview dashboard
   if (submittedAddress) {
     return <OverviewPage address={submittedAddress} onBack={() => setSubmittedAddress(null)} />;
   }
 
-  // Otherwise show the landing page
   return (
     <div style={{
       fontFamily: "'Georgia', 'Times New Roman', serif",
@@ -102,9 +100,11 @@ export default function App() {
               alignItems: "center",
               background: "#fff",
               borderRadius: 4,
-              border: `1.5px solid ${error ? "#1e3a6e" : "#dde6f0"}`,
-              boxShadow: "0 2px 12px rgba(0,0,0,0.12)",
-              overflow: "hidden"
+              // ✅ Red border on error, normal border otherwise
+              border: `1.5px solid ${error ? "#cc2222" : "#dde6f0"}`,
+              boxShadow: error ? "0 2px 12px rgba(204,34,34,0.15)" : "0 2px 12px rgba(0,0,0,0.12)",
+              overflow: "hidden",
+              transition: "border-color 0.2s, box-shadow 0.2s"
             }}>
               <input
                 type="text"
@@ -128,7 +128,7 @@ export default function App() {
               </button>
             </div>
 
-            {/* Inline error */}
+            {/* ✅ Inline error with red accent */}
             {error && (
               <div style={{
                 marginTop: 10,
@@ -136,16 +136,16 @@ export default function App() {
                 alignItems: "center",
                 gap: 8,
                 background: "rgba(255,255,255,0.92)",
-                border: "1px solid #c8d8ee",
-                borderLeft: "4px solid #1e3a6e",
+                border: "1px solid #f0c8c8",
+                borderLeft: "4px solid #cc2222",
                 borderRadius: 4,
                 padding: "10px 16px",
                 fontFamily: "sans-serif",
                 fontSize: 13,
-                color: "#1e3a6e",
+                color: "#cc2222",
                 boxShadow: "0 2px 8px rgba(0,0,0,0.08)"
               }}>
-                <span style={{ fontSize: 16 }}>🔎</span>
+                <span style={{ fontSize: 16 }}>⚠️</span>
                 <span>{error}</span>
               </div>
             )}

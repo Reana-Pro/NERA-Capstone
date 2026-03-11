@@ -66,7 +66,9 @@ export default function OverviewPage({ address = "45 Harvard Ave, Irvine, CA 926
       background: "#1a1a2e",
       display: "flex",
       flexDirection: "column",
-      boxSizing: "border-box"
+      boxSizing: "border-box",
+      overflowY: "auto",
+      overflowX: "hidden"
     }}>
 
       {/* Top label */}
