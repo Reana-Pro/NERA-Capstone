@@ -1,8 +1,8 @@
 import { useState } from "react";
 import OverviewPage from "./OverviewPage";
+const BG_IMAGE = "https://i.imgur.com/N6ov3sU.jpeg";
 
 const mostSearched = ["45 Harvard Ave", "62 Culver Dr", "21 Kelvin Ave"];
-const BG_IMAGE = "./neighborhood.png";
 
 function isValidAddress(input: string) {
   const zipPattern = /^\d{5}$/;
@@ -100,7 +100,7 @@ export default function App() {
               alignItems: "center",
               background: "#fff",
               borderRadius: 4,
-              // ✅ Red border on error, normal border otherwise
+              // Red border on error, normal border otherwise
               border: `1.5px solid ${error ? "#cc2222" : "#dde6f0"}`,
               boxShadow: error ? "0 2px 12px rgba(204,34,34,0.15)" : "0 2px 12px rgba(0,0,0,0.12)",
               overflow: "hidden",
@@ -128,7 +128,7 @@ export default function App() {
               </button>
             </div>
 
-            {/* ✅ Inline error with red accent */}
+            {/* Inline error with red accent */}
             {error && (
               <div style={{
                 marginTop: 10,
