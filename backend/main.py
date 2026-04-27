@@ -26,11 +26,24 @@ def input_location(address: str):
     if not response.data:
         raise HTTPException(status_code=400, detail="Neighborhood Not Found")
 
-    data = supabase.rpc("get_neighborhood_attributes",
-                        {"neighborhood": response.data}
-                        ).execute()
+    allData = []
+    rowLimit = 1000
+    offset = 0
+    while True:
 
+        data = supabase.rpc("get_neighborhood_attributes",
+                            {"neighborhood": response.data,
+                             'rowlimit': rowLimit,
+                             'offsetval': offset}
+                            ).execute()
+
+        page = data.data
+        if not page:
+            break
+
+        allData.extend(page)
+        offset = offset + rowLimit
     return {
         "Neighborhood": response.data,
-        "Attributes": data
+        "Attributes": allData
     }
