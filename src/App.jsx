@@ -1,10 +1,10 @@
 import { useState } from "react";
 import OverviewPage from "./OverviewPage";
-const BG_IMAGE = "https://i.imgur.com/N6ov3sU.jpeg";
 
+const BG_IMAGE = "https://i.imgur.com/N6ov3sU.jpeg";
 const mostSearched = ["45 Harvard Ave", "62 Culver Dr", "21 Kelvin Ave"];
 
-function isValidAddress(input: string) {
+function isValidAddress(input) {
   const zipPattern = /^\d{5}$/;
   const addressPattern = /\d+\s+\w+/;
   return zipPattern.test(input.trim()) || addressPattern.test(input.trim());
@@ -13,10 +13,12 @@ function isValidAddress(input: string) {
 export default function App() {
   const [query, setQuery] = useState("");
   const [error, setError] = useState("");
-  const [submittedAddress, setSubmittedAddress] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [submittedAddress, setSubmittedAddress] = useState(null);
+  const [neighborhoodData, setNeighborhoodData] = useState(null);
 
-  const handleSearch = (value?: string) => {
-    const input: string = value || query;
+  const handleSearch = async (value) => {
+    const input = value || query;
     if (!input.trim()) {
       setError("Please enter an address or zip code.");
       return;
@@ -26,11 +28,34 @@ export default function App() {
       return;
     }
     setError("");
-    setSubmittedAddress(input);
+    setLoading(true);
+    try {
+      const res = await fetch(`http://localhost:8000/input_location?address=${encodeURIComponent(input)}`);
+      if (!res.ok) {
+        const err = await res.json();
+        setError(err.detail || "Address not found. Please try again.");
+        setLoading(false);
+        return;
+      }
+      const data = await res.json();
+      setNeighborhoodData(data);
+      setSubmittedAddress(input.trim());
+    } catch (e) {
+      setNeighborhoodData(null);
+      setSubmittedAddress(input.trim());
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (submittedAddress) {
-    return <OverviewPage address={submittedAddress} onBack={() => setSubmittedAddress(null)} />;
+    return (
+      <OverviewPage
+        address={submittedAddress}
+        neighborhoodData={neighborhoodData}
+        onBack={() => { setSubmittedAddress(null); setNeighborhoodData(null); }}
+      />
+    );
   }
 
   return (
@@ -74,7 +99,7 @@ export default function App() {
         justifyContent: "center",
         minHeight: "calc(100vh - 90px)"
       }}>
-        <div style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,0.6)" }} />
+        <div style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,0.45)" }} />
 
         <div style={{
           position: "relative",
@@ -100,7 +125,6 @@ export default function App() {
               alignItems: "center",
               background: "#fff",
               borderRadius: 4,
-              // Red border on error, normal border otherwise
               border: `1.5px solid ${error ? "#cc2222" : "#dde6f0"}`,
               boxShadow: error ? "0 2px 12px rgba(204,34,34,0.15)" : "0 2px 12px rgba(0,0,0,0.12)",
               overflow: "hidden",
@@ -112,6 +136,7 @@ export default function App() {
                 value={query}
                 onChange={e => { setQuery(e.target.value); if (error) setError(""); }}
                 onKeyDown={e => e.key === "Enter" && handleSearch()}
+                disabled={loading}
                 style={{
                   flex: 1, border: "none", outline: "none",
                   padding: "16px 20px", fontSize: 16,
@@ -120,15 +145,19 @@ export default function App() {
               />
               <button
                 onClick={() => handleSearch()}
-                style={{ padding: "14px 20px", background: "transparent", border: "none", cursor: "pointer", display: "flex", alignItems: "center" }}
+                disabled={loading}
+                style={{ padding: "14px 20px", background: "transparent", border: "none", cursor: loading ? "wait" : "pointer", display: "flex", alignItems: "center" }}
               >
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e3a6e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
+                {loading ? (
+                  <span style={{ fontSize: 14, color: "#1e3a6e", fontFamily: "sans-serif" }}>...</span>
+                ) : (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e3a6e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                )}
               </button>
             </div>
 
-            {/* Inline error with red accent */}
             {error && (
               <div style={{
                 marginTop: 10,
@@ -145,7 +174,6 @@ export default function App() {
                 color: "#cc2222",
                 boxShadow: "0 2px 8px rgba(0,0,0,0.08)"
               }}>
-                <span style={{ fontSize: 16 }}>⚠️</span>
                 <span>{error}</span>
               </div>
             )}
