@@ -38,6 +38,9 @@ def input_location(address: str):
                             ).execute()
     if not response.data:
         raise HTTPException(status_code=400, detail="Neighborhood Not Found")
+    score = supabase.rpc("get_neighborhood_score",
+                         {"neighborhood" : response.data}
+                         ).execute()
     allData = []
     rowLimit = 1000
     offset = 0
@@ -54,6 +57,7 @@ def input_location(address: str):
         offset = offset + rowLimit
     return {
         "Neighborhood": response.data,
+        "Score": score.data,
         "Attributes": allData,
         "latitude": location.latitude,
         "longitude": location.longitude 
