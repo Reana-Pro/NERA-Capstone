@@ -41,6 +41,18 @@ def input_location(address: str):
     score = supabase.rpc("get_neighborhood_score",
                          {"neighborhood" : response.data}
                          ).execute()
+    projection3years = supabase.rpc("get_neighborhood_score_projections",
+                         {"neighborhood": response.data, 'years': 3}
+                         ).execute()
+    projection5years = supabase.rpc("get_neighborhood_score_projections",
+                                    {"neighborhood": response.data, 'years': 5}
+                                    ).execute()
+    projection7years = supabase.rpc("get_neighborhood_score_projections",
+                                    {"neighborhood": response.data, 'years': 7}
+                                    ).execute()
+    confidence = supabase.rpc("get_confidence_rating",
+                                    {"neighborhood": response.data}
+                                    ).execute()
     allData = []
     rowLimit = 1000
     offset = 0
@@ -58,6 +70,10 @@ def input_location(address: str):
     return {
         "Neighborhood": response.data,
         "Score": score.data,
+        "3 Year Projection": projection3years.data,
+        "5 Year Projection": projection5years.data,
+        "7 Year Projection": projection7years.data,
+        "Confidence Rating": confidence.data,
         "Attributes": allData,
         "latitude": location.latitude,
         "longitude": location.longitude 
