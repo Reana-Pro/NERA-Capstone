@@ -83,7 +83,6 @@ export default function OverviewPage({ address = "1 Turtle Rock Irvine CA", neig
   const categoryScores = calculateCategoryScores(attributes);
   const trendData = buildTrendData(attributes);
 
-  // Build OSM embed URL dynamically from real coordinates
   const delta = 0.05;
   const mapSrc = `https://www.openstreetmap.org/export/embed.html?bbox=${lng - delta}%2C${lat - delta}%2C${lng + delta}%2C${lat + delta}&layer=mapnik&marker=${lat}%2C${lng}`;
 
@@ -111,7 +110,6 @@ export default function OverviewPage({ address = "1 Turtle Rock Irvine CA", neig
       setLoading(false);
     }
   };
-  
 
   return (
     <div style={{
@@ -192,9 +190,7 @@ export default function OverviewPage({ address = "1 Turtle Rock Irvine CA", neig
         </div>
       </div>
 
-       <div style={{ margin: "16px 40px 0", height: 1, background: "#c8d4e4" }} />
-
-      
+      <div style={{ margin: "16px 40px 0", height: 1, background: "#c8d4e4" }} />
 
       {/* MAP TAB */}
       {activeTab === "map" && (
@@ -230,35 +226,76 @@ export default function OverviewPage({ address = "1 Turtle Rock Irvine CA", neig
                 borderRadius: 4, padding: "16px 24px",
                 textAlign: "center", display: "inline-block", minWidth: 90,
                 boxShadow: "0 4px 16px rgba(30,58,110,0.25)"
-                }}>
-                  <div style={{ fontSize: 12, color: "#a8c0e0", fontFamily: "sans-serif", letterSpacing: 1, marginBottom: -6 }}>Score</div>
-                  <div style={{ fontSize: 42, fontWeight: 700, color: "#fff", fontFamily: "'Georgia', serif", lineHeight: 1, marginTop: 4 }}>
-                    {currentData?.Score ? Math.round(currentData.Score) : "—"}
+              }}>
+                <div style={{ fontSize: 12, color: "#a8c0e0", fontFamily: "sans-serif", letterSpacing: 1, marginBottom: -6 }}>Score</div>
+                <div style={{ fontSize: 42, fontWeight: 700, color: "#fff", fontFamily: "'Georgia', serif", lineHeight: 1, marginTop: 4 }}>
+                  {currentData?.Score ? Math.round(currentData.Score) : "—"}
                 </div>
               </div>
             </div>
 
-            
-
             {/* Trend Chart */}
-            {trendData.length > 0 && (
+            {currentData?.Score != null && (
               <div>
                 <h3 style={{ fontSize: 15, fontWeight: 700, color: "#1e3a6e", fontFamily: "sans-serif", margin: "0 0 4px" }}>
                   Market Trend Projections (3/5/7 Years)
                 </h3>
                 <div style={{ background: "#fff", borderRadius: 4, border: "1px solid #d0daea", padding: "16px 12px 8px", boxShadow: "0 1px 6px rgba(0,0,0,0.05)" }}>
                   <div style={{ fontSize: 12, color: "#1e3a6e", fontFamily: "sans-serif", fontWeight: 600, marginBottom: 8 }}>
-                    Neighbor comparison over time
+                    Composite score over time
                   </div>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <LineChart data={trendData} margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
-                      <XAxis dataKey="year" tick={{ fontSize: 11, fontFamily: "sans-serif" }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fontSize: 10, fontFamily: "sans-serif" }} axisLine={false} tickLine={false} />
-                      <Tooltip contentStyle={{ fontSize: 12, fontFamily: "sans-serif" }} />
-                      <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11, fontFamily: "sans-serif" }} />
-                      <Line type="monotone" dataKey="Housing" stroke="#1e3a6e" strokeWidth={2} dot={{ r: 3 }} />
-                      <Line type="monotone" dataKey="Income" stroke="#3aaa6a" strokeWidth={2} dot={{ r: 3 }} />
-                      <Line type="monotone" dataKey="Education" stroke="#e07b2a" strokeWidth={2} dot={{ r: 3 }} />
+                  <ResponsiveContainer width="100%" height={220}>
+                    <LineChart
+                      data={[
+                        { label: "Now", Score: Math.round(currentData.Score) },
+                        { label: "3yr", Score: currentData["3 Year Projection"] != null ? Math.round(currentData["3 Year Projection"]) : null },
+                        { label: "5yr", Score: currentData["5 Year Projection"] != null ? Math.round(currentData["5 Year Projection"]) : null },
+                        { label: "7yr", Score: currentData["7 Year Projection"] != null ? Math.round(currentData["7 Year Projection"]) : null },
+                      ]}
+                      margin={{ top: 10, right: 20, bottom: 0, left: 0 }}
+                    >
+                      <XAxis
+                        dataKey="label"
+                        tick={{ fontSize: 12, fontFamily: "sans-serif", fill: "#1a2a4a" }}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <YAxis
+                        domain={[
+                          dataMin => Math.max(0, Math.floor(dataMin - 5)),
+                          dataMax => Math.min(100, Math.ceil(dataMax + 5))
+                        ]}
+                        tick={{ fontSize: 11, fontFamily: "sans-serif", fill: "#6a80a0" }}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          fontSize: 13,
+                          fontFamily: "sans-serif",
+                          borderRadius: 6,
+                          border: "1px solid #d0daea",
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+                          padding: "8px 14px"
+                        }}
+                        formatter={(val) => [`${val}`, "Composite Score"]}
+                        labelStyle={{ fontWeight: 700, color: "#1a2a4a", marginBottom: 4 }}
+                      />
+                      <Legend
+                        iconType="circle"
+                        iconSize={8}
+                        wrapperStyle={{ fontSize: 12, fontFamily: "sans-serif", paddingTop: 8 }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="Score"
+                        name="Composite Score"
+                        stroke="#1e3a6e"
+                        strokeWidth={2.5}
+                        dot={{ r: 5, fill: "#1e3a6e", strokeWidth: 2, stroke: "#fff" }}
+                        activeDot={{ r: 7, fill: "#2a5fa0", stroke: "#fff", strokeWidth: 2 }}
+                        connectNulls
+                      />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
