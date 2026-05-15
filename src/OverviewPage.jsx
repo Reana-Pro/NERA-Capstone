@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
+
 function isValidAddress(input) {
   const zipPattern = /^\d{5}$/;
   const addressPattern = /\d+\s+\w+/;
@@ -190,7 +191,9 @@ export default function OverviewPage({ address = "1 Turtle Rock Irvine CA", neig
         </div>
       </div>
 
-      <div style={{ margin: "16px 40px 0", height: 1, background: "#c8d4e4" }} />
+       <div style={{ margin: "16px 40px 0", height: 1, background: "#c8d4e4" }} />
+
+      
 
       {/* MAP TAB */}
       {activeTab === "map" && (
@@ -219,22 +222,22 @@ export default function OverviewPage({ address = "1 Turtle Rock Irvine CA", neig
               <div style={{ borderTop: "2px dotted #aabbd0", width: "100%" }} />
             </div>
 
-            {/* Category Scores */}
-            {categoryScores.length > 0 && (
-              <div style={{ marginBottom: 32 }}>
-                <div style={{ fontSize: 15, fontWeight: 700, color: "#1e3a6e", fontFamily: "sans-serif", marginBottom: 14 }}>Category Score</div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  {categoryScores.map(({ label, score }) => (
-                    <div key={label}>
-                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                        <span style={{ fontSize: 13, color: "#2c3e5e", fontFamily: "sans-serif" }}>{label}</span>
-                      </div>
-                      <ScoreBar score={score} />
-                    </div>
-                  ))}
+            <div style={{ marginBottom: 32 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "#1e3a6e", fontFamily: "sans-serif", marginBottom: 14 }}>Overall Score</div>
+              <div style={{
+                background: "linear-gradient(135deg, #1e3a6e, #2a5fa0)",
+                borderRadius: 4, padding: "16px 24px",
+                textAlign: "center", display: "inline-block", minWidth: 90,
+                boxShadow: "0 4px 16px rgba(30,58,110,0.25)"
+                }}>
+                  <div style={{ fontSize: 12, color: "#a8c0e0", fontFamily: "sans-serif", letterSpacing: 1, marginBottom: -6 }}>Score</div>
+                  <div style={{ fontSize: 42, fontWeight: 700, color: "#fff", fontFamily: "'Georgia', serif", lineHeight: 1, marginTop: 4 }}>
+                    {currentData?.Score ? Math.round(currentData.Score) : "—"}
                 </div>
               </div>
-            )}
+            </div>
+
+            
 
             {/* Trend Chart */}
             {trendData.length > 0 && (
