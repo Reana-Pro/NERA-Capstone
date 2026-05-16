@@ -167,11 +167,11 @@ export default function OverviewPage({ address = "1 Turtle Rock Irvine CA", neig
       </div>
 
       {/* Address + tabs */}
-      <div style={{ padding: "16px 40px 0", display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+      <div style={{ padding: "16px 40px 0", display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16}}>
         <div>
           <h2 style={{ fontSize: 22, fontWeight: 700, color: "#1a2a4a", margin: "0 0 4px", fontFamily: "'Georgia', serif" }}>{currentAddress}</h2>
           <p style={{ margin: 0, fontSize: 14, fontFamily: "sans-serif", color: "#2a4f8f" }}>
-            <strong>Confidence:</strong> High &nbsp;|&nbsp; <strong>Neighborhood:</strong> {neighborhood}
+            <strong>Confidence:</strong> {currentData?.["Confidence Rating"] || "—"} &nbsp;|&nbsp; <strong>Neighborhood:</strong> {neighborhood}
           </p>
         </div>
         <div style={{ display: "flex", gap: 10 }}>
@@ -188,9 +188,10 @@ export default function OverviewPage({ address = "1 Turtle Rock Irvine CA", neig
             </button>
           ))}
         </div>
+          <div style={{ width: "100%", borderBottom: "2px dotted #c8d4e4", marginTop: 1 }} />
       </div>
 
-      <div style={{ margin: "16px 40px 0", height: 1, background: "#c8d4e4" }} />
+      <div style={{ margin: "16px 40px 0",height: 1, background: "#c8d4e4" }} />
 
       {/* MAP TAB */}
       {activeTab === "map" && (
