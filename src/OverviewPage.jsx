@@ -68,6 +68,57 @@ function ScoreBar({ score }) {
   );
 }
 
+function StatBox({ label, value, tooltip, tooltipDown }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: "#fff",
+        borderRadius: 4,
+        border: "1px solid #d0daea",
+        padding: "14px 16px",
+        boxShadow: "0 1px 6px rgba(0,0,0,0.05)",
+        cursor: "default",
+        position: "relative",
+      }}
+    >
+      <div style={{ fontSize: 11, color: "#6a80a0", fontFamily: "sans-serif", marginBottom: 4, letterSpacing: 0.5 }}>{label}</div>
+      <div style={{ fontSize: 20, fontWeight: 700, color: "#1e3a6e", fontFamily: "'Georgia', serif" }}>{value}</div>
+      {hovered && (
+        <div style={{
+          position: "absolute",
+          ...(tooltipDown ? { top: "110%", bottom: "auto" } : { bottom: "110%", top: "auto" }),
+          left: 0,
+          zIndex: 999,
+          background: "linear-gradient(135deg, #1e3a6e 0%, #2a4f8f 100%)",
+          color: "#fff",
+          fontFamily: "'Georgia', 'Times New Roman', serif",
+          fontSize: 13,
+          lineHeight: 1.5,
+          padding: "10px 14px",
+          borderRadius: 6,
+          boxShadow: "0 4px 16px rgba(0,0,0,0.18)",
+          width: 220,
+          pointerEvents: "none",
+        }}>
+          {tooltip}
+          <div style={{
+            position: "absolute",
+            ...(tooltipDown ? { bottom: "100%", top: "auto", borderBottom: "6px solid #1e3a6e", borderTop: "none" } : { top: "100%", bottom: "auto", borderTop: "6px solid #2a4f8f", borderBottom: "none" }),
+            left: 20,
+            width: 0,
+            height: 0,
+            borderLeft: "6px solid transparent",
+            borderRight: "6px solid transparent",
+          }} />
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function OverviewPage({ address = "1 Turtle Rock Irvine CA", neighborhoodData, onBack }) {
   const [activeTab, setActiveTab] = useState("overview");
   const [searchQuery, setSearchQuery] = useState("");
@@ -142,27 +193,27 @@ export default function OverviewPage({ address = "1 Turtle Rock Irvine CA", neig
   };
 
   const statBoxes = [
-    {
-      label: "Bachelor's Degree or Higher",
-      value: getAttr("Bachelor's degree or higher") !== "—" ? `${getAttr("Bachelor's degree or higher")}%` : "—",
-      tooltip: "% of residents 25+ with a bachelor's degree. Highest weight in the composite score (0.4) — higher is better.",
-    },
-    {
-      label: "Median Household Income",
-      value: getAttr("Median household income") !== "—" ? `$${getAttr("Median household income").toLocaleString()}` : "—",
-      tooltip: "The combined income of a typical household. Positive indicator in the composite score (weight 0.35).",
-    },
-    {
-      label: "Poverty Rate by Education",
-      value: getAttr("Poverty rate by education") !== "—" ? `${getAttr("Poverty rate by education")}%` : "—",
-      tooltip: "% of residents below the poverty line by education level. Negative indicator in the composite score (weight 0.15) — lower is better.",
-    },
-    {
-      label: "Age 65+ Population",
-      value: getAge65Plus() !== "—" ? `${getAge65Plus()}%` : "—",
-      tooltip: "% of residents aged 65 and older. A high proportion is a negative indicator in the composite score (weight 0.1).",
-    },
-    ];
+  {
+    label: "Bachelor's Degree or Higher",
+    value: getAttr("Bachelor's degree or higher") !== "—" ? `${getAttr("Bachelor's degree or higher")}%` : "—",
+    tooltip: "Percentage of residents aged 25+ who hold a bachelor's degree or higher. Higher is better.",
+  },
+  {
+    label: "Median Household Income",
+    value: getAttr("Median household income") !== "—" ? `$${getAttr("Median household income").toLocaleString()}` : "—",
+    tooltip: "The typical combined income of a household in this neighborhood. Higher indicates greater financial stability.",
+  },
+  {
+    label: "Poverty Rate by Education",
+    value: getAttr("Poverty rate by education") !== "—" ? `${getAttr("Poverty rate by education")}%` : "—",
+    tooltip: "Percentage of residents below the poverty line. Lower is better — a high rate signals economic vulnerability.",
+  },
+  {
+    label: "Age 65+ Population",
+    value: getAge65Plus() !== "—" ? `${getAge65Plus()}%` : "—",
+    tooltip: "Percentage of residents aged 65 and older. A very high proportion may indicate lower workforce participation.",
+  },
+];
 
   return (
     <div style={{
@@ -370,29 +421,13 @@ export default function OverviewPage({ address = "1 Turtle Rock Irvine CA", neig
               Map data © <a href="https://openstreetmap.org" target="_blank" rel="noreferrer" style={{ color: "#2a6ab5" }}>OpenStreetMap</a> contributors
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 16 }}>
-              {statBoxes.map(({ label, value, tooltip }) => (
-                <div
-                key={label}
-                title={tooltip}
-                style={{
-                  background: "#fff",
-                  borderRadius: 4,
-                  border: "1px solid #d0daea",
-                  padding: "14px 16px",
-                  boxShadow: "0 1px 6px rgba(0,0,0,0.05)",
-                  cursor: "default",
-                  }}
-                >
-                  <div style={{ fontSize: 11, color: "#6a80a0", fontFamily: "sans-serif", marginBottom: 4, letterSpacing: 0.5 }}>{label}</div>
-                  <div style={{ fontSize: 20, fontWeight: 700, color: "#1e3a6e", fontFamily: "'Georgia', serif" }}>{value}</div>
-                </div>
+              {statBoxes.map(({ label, value, tooltip }, index) => (
+                <StatBox key={label} label={label} value={value} tooltip={tooltip} tooltipDown={false} />
               ))}
             </div>
             </div>
-         
-
-        </div>
+          </div>
       )}
     </div>
-  );
+ );
 }
