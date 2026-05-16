@@ -111,6 +111,59 @@ export default function OverviewPage({ address = "1 Turtle Rock Irvine CA", neig
     }
   };
 
+  const getAttr = (label, year = 2024) => {
+    if (!attributes) return "—";
+    const medians = attributes.filter(a => a.label === label && a.data_year === year && a.metric_type === "median" && a.sex === null && a.race === null);
+    if (medians.length) return Math.round(medians[0].estimate);
+    const match = attributes.find(a =>
+      a.label === label &&
+      a.data_year === year &&
+      a.metric_type === "percent" &&
+      a.sex === null &&
+      a.race === null &&
+      a.age_group === "25 years and over"
+    );
+    if (match) return parseFloat(match.estimate.toFixed(1));
+    return "—";
+  };
+
+  const getAge65Plus = (year = 2024) => {
+    if (!attributes) return "—";
+    const match = attributes.find(a =>
+      a.label === "Age" &&
+      a.data_year === year &&
+      a.metric_type === "percent" &&
+      a.age_group === "65 years and over" &&
+      a.sex === null &&
+      a.race === null
+    );
+    if (!match) return "—";
+    return parseFloat(match.estimate.toFixed(1));;
+  };
+
+  const statBoxes = [
+    {
+      label: "Bachelor's Degree or Higher",
+      value: getAttr("Bachelor's degree or higher") !== "—" ? `${getAttr("Bachelor's degree or higher")}%` : "—",
+      tooltip: "% of residents 25+ with a bachelor's degree. Highest weight in the composite score (0.4) — higher is better.",
+    },
+    {
+      label: "Median Household Income",
+      value: getAttr("Median household income") !== "—" ? `$${getAttr("Median household income").toLocaleString()}` : "—",
+      tooltip: "The combined income of a typical household. Positive indicator in the composite score (weight 0.35).",
+    },
+    {
+      label: "Poverty Rate by Education",
+      value: getAttr("Poverty rate by education") !== "—" ? `${getAttr("Poverty rate by education")}%` : "—",
+      tooltip: "% of residents below the poverty line by education level. Negative indicator in the composite score (weight 0.15) — lower is better.",
+    },
+    {
+      label: "Age 65+ Population",
+      value: getAge65Plus() !== "—" ? `${getAge65Plus()}%` : "—",
+      tooltip: "% of residents aged 65 and older. A high proportion is a negative indicator in the composite score (weight 0.1).",
+    },
+    ];
+
   return (
     <div style={{
       fontFamily: "'Georgia', 'Times New Roman', serif",
@@ -316,7 +369,27 @@ export default function OverviewPage({ address = "1 Turtle Rock Irvine CA", neig
             <div style={{ marginTop: 8, fontSize: 11, color: "#6a80a0", fontFamily: "sans-serif", textAlign: "right" }}>
               Map data © <a href="https://openstreetmap.org" target="_blank" rel="noreferrer" style={{ color: "#2a6ab5" }}>OpenStreetMap</a> contributors
             </div>
-          </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 16 }}>
+              {statBoxes.map(({ label, value, tooltip }) => (
+                <div
+                key={label}
+                title={tooltip}
+                style={{
+                  background: "#fff",
+                  borderRadius: 4,
+                  border: "1px solid #d0daea",
+                  padding: "14px 16px",
+                  boxShadow: "0 1px 6px rgba(0,0,0,0.05)",
+                  cursor: "default",
+                  }}
+                >
+                  <div style={{ fontSize: 11, color: "#6a80a0", fontFamily: "sans-serif", marginBottom: 4, letterSpacing: 0.5 }}>{label}</div>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: "#1e3a6e", fontFamily: "'Georgia', serif" }}>{value}</div>
+                </div>
+              ))}
+            </div>
+            </div>
+         
 
         </div>
       )}
