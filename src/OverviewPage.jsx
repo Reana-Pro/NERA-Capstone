@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from "recharts";
 
 
 function isValidAddress(input) {
@@ -38,23 +38,7 @@ function calculateCategoryScores(attributes) {
   return scores;
 }
 
-function buildTrendData(attributes) {
-  if (!attributes) return [];
-  const years = [2014, 2019, 2024];
-  return years.map(year => {
-    const items = attributes.filter(a => a.data_year === year && a.metric_type === "percent");
-    const avg = (label) => {
-      const arr = items.filter(a => a.label === label);
-      return arr.length ? Math.round(arr.reduce((s, a) => s + a.estimate, 0) / arr.length) : 0;
-    };
-    return {
-      year: year.toString(),
-      Housing: avg("Home value"),
-      Income: avg("Income by household"),
-      Education: avg("Education levels attained"),
-    };
-  });
-}
+
 
 function ScoreBar({ score }) {
   const color = "#1e3a6e";
@@ -84,8 +68,8 @@ function StatBox({ label, value, tooltip, tooltipDown }) {
         position: "relative",
       }}
     >
-      <div style={{ fontSize: 11, color: "#6a80a0", fontFamily: "sans-serif", marginBottom: 4, letterSpacing: 0.5 }}>{label}</div>
-      <div style={{ fontSize: 20, fontWeight: 700, color: "#1e3a6e", fontFamily: "'Georgia', serif" }}>{value}</div>
+      <div style={{ fontSize: 14, color: "#1a2a4a", fontFamily: "sans-serif", marginBottom: 4, letterSpacing: 0.5,fontWeight: 700 }}>{label}</div>
+      <div style={{ fontSize: value.length > 15 ? 17 : 20, fontWeight: 700, color: "#1e3a6e", fontFamily: "'Georgia', serif" }}>{value}</div>
       {hovered && (
         <div style={{
           position: "absolute",
@@ -132,7 +116,8 @@ export default function OverviewPage({ address = "1 Turtle Rock Irvine CA", neig
   const lat = currentData?.latitude || 33.6846;
   const lng = currentData?.longitude || -117.8265;
   const categoryScores = calculateCategoryScores(attributes);
-  const trendData = buildTrendData(attributes);
+  const [scoreHovered, setScoreHovered] = useState(false);
+  
 
   const delta = 0.05;
   const mapSrc = `https://www.openstreetmap.org/export/embed.html?bbox=${lng - delta}%2C${lat - delta}%2C${lng + delta}%2C${lat + delta}&layer=mapnik&marker=${lat}%2C${lng}`;
@@ -162,59 +147,46 @@ export default function OverviewPage({ address = "1 Turtle Rock Irvine CA", neig
     }
   };
 
-  const getAttr = (label, year = 2024) => {
-    if (!attributes) return "—";
-    const medians = attributes.filter(a => a.label === label && a.data_year === year && a.metric_type === "median" && a.sex === null && a.race === null);
-    if (medians.length) return Math.round(medians[0].estimate);
-    const match = attributes.find(a =>
-      a.label === label &&
-      a.data_year === year &&
-      a.metric_type === "percent" &&
-      a.sex === null &&
-      a.race === null &&
-      a.age_group === "25 years and over"
-    );
-    if (match) return parseFloat(match.estimate.toFixed(1));
-    return "—";
-  };
-
-  const getAge65Plus = (year = 2024) => {
-    if (!attributes) return "—";
-    const match = attributes.find(a =>
-      a.label === "Age" &&
-      a.data_year === year &&
-      a.metric_type === "percent" &&
-      a.age_group === "65 years and over" &&
-      a.sex === null &&
-      a.race === null
-    );
-    if (!match) return "—";
-    return parseFloat(match.estimate.toFixed(1));;
-  };
-
   const statBoxes = [
   {
-    label: "Bachelor's Degree or Higher",
-    value: getAttr("Bachelor's degree or higher") !== "—" ? `${getAttr("Bachelor's degree or higher")}%` : "—",
-    tooltip: "Percentage of residents aged 25+ who hold a bachelor's degree or higher. Higher is better.",
+    label: "Education",
+    value: currentData?.["Median Percentage of Bachelor's or Higher"] != null
+      ? `${parseFloat(currentData["Median Percentage of Bachelor's or Higher"].toFixed(1))}%`
+      : "—",
+    tooltip: "Percentage of residents aged 25+ who hold a bachelor's degree or higher. A key indicator of the neighborhood's education level — higher is better.",
   },
   {
-    label: "Median Household Income",
-    value: getAttr("Median household income") !== "—" ? `$${getAttr("Median household income").toLocaleString()}` : "—",
-    tooltip: "The typical combined income of a household in this neighborhood. Higher indicates greater financial stability.",
+    label: "Economic",
+    value: currentData?.["Median Household Income"] != null
+      ? `$${Math.round(currentData["Median Household Income"]).toLocaleString()}`
+      : "—",
+    tooltip: "The typical combined annual income of a household in this neighborhood. Higher income reflects greater financial stability and economic strength.",
   },
   {
-    label: "Poverty Rate by Education",
-    value: getAttr("Poverty rate by education") !== "—" ? `${getAttr("Poverty rate by education")}%` : "—",
-    tooltip: "Percentage of residents below the poverty line. Lower is better — a high rate signals economic vulnerability.",
+    label: "Poverty",
+    value: currentData?.["Median Poverty rate across education levels higher than less than HS graduate"] != null
+      ? `${parseFloat(currentData["Median Poverty rate across education levels higher than less than HS graduate"].toFixed(1))}%`
+      : "—",
+    tooltip: "Percentage of residents below the poverty line. A lower rate indicates a more economically stable neighborhood — lower is better.",
   },
   {
-    label: "Age 65+ Population",
-    value: getAge65Plus() !== "—" ? `${getAge65Plus()}%` : "—",
-    tooltip: "Percentage of residents aged 65 and older. A very high proportion may indicate lower workforce participation.",
+    label: "Elderly",
+    value: (() => {
+      const pct = currentData?.["Median Percentage of Elderly compared to Total population"];
+      const elderly = currentData?.["Median Elderly population within neighborhood number"];
+      const total = currentData?.["Median Total population within neighborhood number"];
+      if (pct == null) return "—";
+      const pctStr = `${parseFloat((pct * 100).toFixed(1))}%`;
+      if (elderly != null && total != null) {
+        return `${pctStr} (${Math.round(elderly).toLocaleString()} of ${Math.round(total).toLocaleString()} residents)`;
+      }
+      return pctStr;
+    })(),
+    tooltip: "Percentage of residents aged 65 and older, shown with the actual count out of total neighborhood population. A very high proportion may indicate lower workforce participation.",
   },
 ];
 
+  
   return (
     <div style={{
       fontFamily: "'Georgia', 'Times New Roman', serif",
@@ -318,38 +290,63 @@ export default function OverviewPage({ address = "1 Turtle Rock Irvine CA", neig
 
             {/* Section title */}
             <div style={{ marginBottom: 20 }}>
-              <h3 style={{ fontSize: 13, fontWeight: 700, color: "#1a2a4a", letterSpacing: 1.5, textTransform: "uppercase", margin: "0 0 6px", fontFamily: "sans-serif" }}>
+              <h3 style={{ fontSize: 14, fontWeight: 700, color: "#1a2a4a", letterSpacing: 1.5, textTransform: "uppercase", margin: "0 0 6px", fontFamily: "sans-serif" }}>
                 Real Estate Prices & Overview
               </h3>
               <div style={{ borderTop: "2px dotted #aabbd0", width: "100%" }} />
             </div>
-
             <div style={{ marginBottom: 32 }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: "#1e3a6e", fontFamily: "sans-serif", marginBottom: 14 }}>Overall Score</div>
-              <div style={{
-                background: "linear-gradient(135deg, #1e3a6e, #2a5fa0)",
-                borderRadius: 4, padding: "16px 24px",
-                textAlign: "center", display: "inline-block", minWidth: 90,
-                boxShadow: "0 4px 16px rgba(30,58,110,0.25)"
+              <div style={{ fontSize: 16, fontWeight: 700, color: "#1e3a6e", fontFamily: "sans-serif", marginBottom: 14 }}>Overall Score</div>
+              <div
+                style={{ position: "relative", display: "inline-block" }}
+                onMouseEnter={() => setScoreHovered(true)}
+                onMouseLeave={() => setScoreHovered(false)}
+              >
+                <div style={{
+                  background: "linear-gradient(135deg, #1e3a6e, #2a5fa0)",
+                  borderRadius: 4, padding: "16px 24px",
+                  textAlign: "center", display: "inline-block", minWidth: 90,
+                  boxShadow: "0 4px 16px rgba(30,58,110,0.25)"
               }}>
                 <div style={{ fontSize: 12, color: "#a8c0e0", fontFamily: "sans-serif", letterSpacing: 1, marginBottom: -6 }}>Score</div>
                 <div style={{ fontSize: 42, fontWeight: 700, color: "#fff", fontFamily: "'Georgia', serif", lineHeight: 1, marginTop: 4 }}>
                   {currentData?.Score ? Math.round(currentData.Score) : "—"}
                 </div>
               </div>
-            </div>
+              {scoreHovered && (
+                <div style={{
+                  position: "absolute",
+                  top: 0,
+                  left: "110%",
+                  zIndex: 999,
+                  background: "linear-gradient(135deg, #1e3a6e 0%, #2a4f8f 100%)",
+                  color: "#fff",
+                  fontFamily: "'Georgia', 'Times New Roman', serif",
+                  fontSize: 13,
+                  lineHeight: 1.5,
+                  padding: "10px 14px",
+                  borderRadius: 6,
+                  boxShadow: "0 4px 16px rgba(0,0,0,0.18)",
+                  width: 250,
+                  pointerEvents: "none",
+            }}>
+              A score from 0–100 measuring this neighborhood's overall economic stability based on education, income, poverty rate, and elderly population. Higher is better.
+              </div>
+           )}
+           </div>
+      </div>
 
             {/* Trend Chart */}
             {currentData?.Score != null && (
-              <div>
-                <h3 style={{ fontSize: 15, fontWeight: 700, color: "#1e3a6e", fontFamily: "sans-serif", margin: "0 0 4px" }}>
+              <div style={{ marginTop: 45}}>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: "#1e3a6e", fontFamily: "sans-serif", margin: "0 0 4px" }}>
                   Market Trend Projections (3/5/7 Years)
                 </h3>
                 <div style={{ background: "#fff", borderRadius: 4, border: "1px solid #d0daea", padding: "16px 12px 8px", boxShadow: "0 1px 6px rgba(0,0,0,0.05)" }}>
-                  <div style={{ fontSize: 12, color: "#1e3a6e", fontFamily: "sans-serif", fontWeight: 600, marginBottom: 8 }}>
-                    Composite score over time
+                  <div style={{ fontSize: 14, color: "#1e3a6e", fontFamily: "sans-serif", fontWeight: 600, marginBottom: 16 }}>
+                    Neighborhood overall score projected over time
                   </div>
-                  <ResponsiveContainer width="100%" height={220}>
+                  <ResponsiveContainer width="100%" height={250}>
                     <LineChart
                       data={[
                         { label: "Now", Score: Math.round(currentData.Score) },
@@ -362,17 +359,18 @@ export default function OverviewPage({ address = "1 Turtle Rock Irvine CA", neig
                       <XAxis
                         dataKey="label"
                         tick={{ fontSize: 12, fontFamily: "sans-serif", fill: "#1a2a4a" }}
-                        axisLine={false}
+                        axisLine={{ stroke: "#c8d4e4" }}
                         tickLine={false}
+                        padding={{ left: 20, right: 20 }}
                       />
                       <YAxis
                         domain={[
-                          dataMin => Math.max(0, Math.floor(dataMin - 5)),
+                          dataMin => Math.max(0, Math.floor(dataMin - 10)),
                           dataMax => Math.min(100, Math.ceil(dataMax + 5))
                         ]}
                         tick={{ fontSize: 11, fontFamily: "sans-serif", fill: "#6a80a0" }}
-                        axisLine={false}
-                        tickLine={false}
+                        axisLine={{ stroke: "#c8d4e4" }}
+                        tickLine={{ stroke: "#c8d4e4" }}
                       />
                       <Tooltip
                         contentStyle={{
@@ -383,7 +381,7 @@ export default function OverviewPage({ address = "1 Turtle Rock Irvine CA", neig
                           boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
                           padding: "8px 14px"
                         }}
-                        formatter={(val) => [`${val}`, "Composite Score"]}
+                        formatter={(val) => [`${val}`, "Overall Score"]}
                         labelStyle={{ fontWeight: 700, color: "#1a2a4a", marginBottom: 4 }}
                       />
                       <Legend
@@ -394,7 +392,7 @@ export default function OverviewPage({ address = "1 Turtle Rock Irvine CA", neig
                       <Line
                         type="monotone"
                         dataKey="Score"
-                        name="Composite Score"
+                        name="Overall Score"
                         stroke="#1e3a6e"
                         strokeWidth={2.5}
                         dot={{ r: 5, fill: "#1e3a6e", strokeWidth: 2, stroke: "#fff" }}
@@ -410,7 +408,7 @@ export default function OverviewPage({ address = "1 Turtle Rock Irvine CA", neig
 
           {/* RIGHT COLUMN — Map */}
           <div style={{ flex: "1 1 320px", minWidth: 280 }}>
-            <h3 style={{ fontSize: 15, fontWeight: 700, color: "#1e3a6e", fontFamily: "sans-serif", margin: "0 0 12px" }}>Map Overview</h3>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: "#1e3a6e", fontFamily: "sans-serif", margin: "0 0 12px" }}>Map Overview</h3>
             <div style={{ borderRadius: 4, overflow: "hidden", border: "1px solid #c8d4e4", boxShadow: "0 2px 12px rgba(0,0,0,0.08)", height: 380, background: "#dce8f0" }}>
               <iframe title="Neighborhood Map" width="100%" height="100%" frameBorder="0" scrolling="no"
                 src={mapSrc}
