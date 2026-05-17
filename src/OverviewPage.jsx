@@ -343,9 +343,11 @@ export default function OverviewPage({ address = "1 Turtle Rock Irvine CA", neig
                   Market Trend Projections (3/5/7 Years)
                 </h3>
                 <div style={{ background: "#fff", borderRadius: 4, border: "1px solid #d0daea", padding: "16px 12px 8px", boxShadow: "0 1px 6px rgba(0,0,0,0.05)" }}>
-                  <div style={{ fontSize: 14, color: "#1e3a6e", fontFamily: "sans-serif", fontWeight: 600, marginBottom: 16 }}>
+                <div style={{ fontSize: 14, color: "#1e3a6e", fontFamily: "sans-serif", fontWeight: 600, marginBottom: 16 }}>
                     Neighborhood overall score projected over time
                   </div>
+
+
                   <ResponsiveContainer width="100%" height={250}>
                     <LineChart
                       data={[
