@@ -38,43 +38,60 @@ def input_location(address: str):
                             ).execute()
     if not response.data:
         raise HTTPException(status_code=400, detail="Neighborhood Not Found")
+    economic_value = supabase.rpc("get_neighborhood_most_current_economic_value",
+                                  {"neighborhood": response.data[0]["neighborhood_name"]}
+                                  ).execute()
+    education_value = supabase.rpc("get_neighborhood_most_current_education_value",
+                                  {"neighborhood": response.data[0]["neighborhood_name"]}
+                                  ).execute()
+    poverty_value = supabase.rpc("get_neighborhood_most_current_poverty_value",
+                                  {"neighborhood": response.data[0]["neighborhood_name"]}
+                                  ).execute()
+    elderly_number = supabase.rpc("get_neighborhood_most_current_elderly_number",
+                                  {"neighborhood": response.data[0]["neighborhood_name"]}
+                                  ).execute()
+    population_value = supabase.rpc("get_neighborhood_most_current_population_number",
+                                  {"neighborhood": response.data[0]["neighborhood_name"]}
+                                  ).execute()
+    elderly_value = supabase.rpc("get_neighborhood_most_current_elderly_value",
+                                  {"neighborhood": response.data[0]["neighborhood_name"]}
+                                  ).execute()
     score = supabase.rpc("get_neighborhood_score",
-                         {"neighborhood" : response.data}
+                         {"neighborhood" : response.data[0]["neighborhood_name"],
+                                    "city" : response.data[0]["city_name"]}
                          ).execute()
-    projection3years = supabase.rpc("get_neighborhood_score_projections",
-                         {"neighborhood": response.data, 'years': 3}
+    projection3years = supabase.rpc("get_neighborhood_score",
+                         {"neighborhood" : response.data[0]["neighborhood_name"],
+                                    "city" : response.data[0]["city_name"],
+                                    "years" : 3}
                          ).execute()
-    projection5years = supabase.rpc("get_neighborhood_score_projections",
-                                    {"neighborhood": response.data, 'years': 5}
-                                    ).execute()
-    projection7years = supabase.rpc("get_neighborhood_score_projections",
-                                    {"neighborhood": response.data, 'years': 7}
-                                    ).execute()
+    projection5years = supabase.rpc("get_neighborhood_score",
+                         {"neighborhood" : response.data[0]["neighborhood_name"],
+                                    "city" : response.data[0]["city_name"],
+                                    "years" : 5}
+                         ).execute()
+    projection7years = supabase.rpc("get_neighborhood_score",
+                         {"neighborhood" : response.data[0]["neighborhood_name"],
+                                    "city" : response.data[0]["city_name"],
+                                    "years" : 7}
+                         ).execute()
     confidence = supabase.rpc("get_confidence_rating",
-                                    {"neighborhood": response.data}
-                                    ).execute()
-    allData = []
-    rowLimit = 1000
-    offset = 0
-    while True:
-        data = supabase.rpc("get_neighborhood_attributes",
-                            {"neighborhood": response.data,
-                             'rowlimit': rowLimit,
-                             'offsetval': offset}
-                            ).execute()
-        page = data.data
-        if not page:
-            break
-        allData.extend(page)
-        offset = offset + rowLimit
+                              {"neighborhood": response.data[0]["neighborhood_name"],
+                               "city": response.data[0]["city_name"]}
+                              ).execute()
     return {
-        "Neighborhood": response.data,
+        "Neighborhood": response.data[0]["neighborhood_name"],
         "Score": score.data,
         "3 Year Projection": projection3years.data,
         "5 Year Projection": projection5years.data,
         "7 Year Projection": projection7years.data,
         "Confidence Rating": confidence.data,
-        "Attributes": allData,
+        "Median Household Income": economic_value.data,
+        "Median Percentage of Bachelor's or Higher": education_value.data,
+        "Median Poverty rate across education levels higher than less than HS graduate": poverty_value.data,
+        "Median Elderly population within neighborhood number" : elderly_number.data,
+        "Median Total population within neighborhood number" : population_value.data,
+        "Median Percentage of Elderly compared to Total population" : elderly_value.data,
         "latitude": location.latitude,
-        "longitude": location.longitude 
+        "longitude": location.longitude
     }
